@@ -25,7 +25,7 @@ struct hoffmanNode* create(priority_queue<pair<int,struct hoffmanNode*>,vector<p
     p.first=sum;
     p.second=node;
     q.push(p);
-    create(q);
+    return create(q);
 }
 
 void initializeQueue(priority_queue<pair<int,struct hoffmanNode*>,vector<pair<int,struct hoffmanNode*>>,greater<pair<int,struct hoffmanNode*>>>&q,vector<pair<char,int>>&v){
@@ -53,28 +53,77 @@ void show(struct hoffmanNode* node){
     cout<<"  ";
     show(node->right);
 }
-void getCode(struct hoffmanNode* node,string &s,string hoffCode[]){
+void getCode(struct hoffmanNode* node,vector<bool> &s,vector<bool> hoffCode[]){
     if(node->left==NULL&&node->right==NULL){
+        // cout<<node->feq<<endl;
         hoffCode[node->data-'a']=s;
         return;
     }
     if(node->left!=NULL){
-        s.push_back('0');
+        s.push_back(false);
         getCode(node->left,s,hoffCode);
         s.pop_back();
     }
     if(node->right!=NULL){
-        s.push_back('1');
+        s.push_back(true);
         getCode(node->right,s,hoffCode);
         s.pop_back();
     }
 }
+
+void decoder(struct hoffmanNode* node,vector<bool>&coded,string &decoded,int i,struct hoffmanNode* head){
+    if(i==(int)coded.size()+1){
+        return;
+    }
+    if(node->left==NULL&&node->right==NULL){
+        decoded.push_back(node->data);
+        decoder(head,coded,decoded,i,head);
+        return;
+    }
+    if(coded[i]==false){
+        decoder(node->left,coded,decoded,i+1,head);
+    }
+    else{
+        decoder(node->right,coded,decoded,i+1,head);
+    }
+}
+
 int main(){
-    vector<pair<char,int>>v={{'a',5},{'b',9},{'c',12},{'d',13},{'e',16},{'f',45}};
+    map<char,int>count;
+    cout<<"Input string :-";
+    string s;
+    cin>>s;
+    s.push_back('x');
+    s.push_back('y');
+    for(int i=0;i<s.size();i++){
+        count[s[i]]++;
+    }
+    vector<pair<char,int>>v;
+    for(auto i:count){
+        v.push_back({i.first,i.second});
+    }
     priority_queue<pair<int,struct hoffmanNode*>,vector<pair<int,struct hoffmanNode*>>,greater<pair<int,struct hoffmanNode*>>>q;
     initializeQueue(q,v);
     struct hoffmanNode* head=create(q);
-    string hoffCode[26];
-    string s="";
-    getCode(head,s,hoffCode);
+    vector<bool> hoffCode[26];
+    vector<bool> s1;
+    getCode(head,s1,hoffCode);
+    
+    vector<bool>coded;
+    for(int i=0;i<s.size();i++){
+        coded.insert(coded.end(),hoffCode[s[i]-'a'].begin(),hoffCode[s[i]-'a'].end());
+    }
+    cout<<"Coded :-";
+    for(auto i:coded){
+        cout<<i;
+    }cout<<endl;
+
+    cout<<"Size of Original string:- ";cout<<s.size()*8<<endl;
+    cout<<"Size of Coded string:- ";cout<<coded.size()<<endl;
+    string decoded;
+    decoder(head,coded,decoded,0,head);
+    decoded.pop_back();
+    decoded.pop_back();
+    cout<<"Decoded String:-";
+    cout<<decoded<<endl;
 }
